@@ -1,4 +1,4 @@
-// go-uuid 生成 RFC 4122 版本 4 的 UUID，零依赖（只用标准库 crypto/rand）。
+// go-uuid 生成 RFC 4122 版本 4 的 UUID（只用标准库 crypto/rand）。
 // 子命令：
 //   (无参数)        生成一个 UUID v4
 //   -n <数量>       批量生成
@@ -15,11 +15,14 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 )
 
 func main() {
 	n := flag.Int("n", 1, "生成数量")
 	prefix := flag.String("prefix", "", "每行前缀")
+	upper := flag.Bool("upper", false, "输出大写字母")
+	sep := flag.String("sep", "-", "分段连接符，传 none 则去掉分隔符")
 	flag.Parse()
 
 	if *n < 1 {
@@ -31,6 +34,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "生成失败: %v\n", err)
 			os.Exit(1)
 		}
+		id = formatUUID(id, *upper, *sep)
 		if *prefix != "" {
 			fmt.Printf("%s%s\n", *prefix, id)
 		} else {
@@ -39,7 +43,7 @@ func main() {
 	}
 }
 
-// newUUIDv4 生成一个版本 4 的 UUID 字符串，形如 xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+// newUUIDv4 生成 16 字节的 UUID v4 原始数据（已设置版本/变体位）。
 func newUUIDv4() (string, error) {
 	var b [16]byte
 	if _, err := rand.Read(b[:]); err != nil {
@@ -55,4 +59,18 @@ func newUUIDv4() (string, error) {
 		hex.EncodeToString(b[8:10]),
 		hex.EncodeToString(b[10:16]),
 	), nil
+}
+
+// formatUUID 按选项调整大小写与分隔符。
+func formatUUID(id string, upper bool, sep string) string {
+	if upper {
+		id = strings.ToUpper(id)
+	}
+	if sep == "none" {
+		sep = ""
+	}
+	if sep != "-" {
+		id = strings.ReplaceAll(id, "-", sep)
+	}
+	return id
 }
