@@ -1,5 +1,7 @@
 # go-uuid
 
+编解码这种小事，犯不着每次都跑在线工具网站溜一圈。
+
 生成 UUID v4，用 `crypto/rand`，符合 RFC 4122。
 
 ```bash
